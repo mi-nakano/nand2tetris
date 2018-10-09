@@ -45,10 +45,10 @@ CHIP CPU {
     Mux16 (a=prevM, b=instruction, sel=isAIns, out=inA);
     And (a=isCIns, b=instruction[5], out=loadA2);
     Or (a=isAIns, b=loadA2, out=loadA);
-    Register (in=inA, load=loadA, out=outA, out[0..14]=addressM);
+    ARegister (in=inA, load=loadA, out=outA, out[0..14]=addressM);
 
     And (a=isCIns, b=instruction[4], out=loadD);
-    Register (in=prevM, load=loadD, out=outD);
+    DRegister (in=prevM, load=loadD, out=outD);
     And (a=isCIns, b=instruction[12], out=mFlag);
     Mux16 (a=outA, b=inM, sel=mFlag, out=aOrM);
 

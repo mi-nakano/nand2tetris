@@ -4,12 +4,31 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "tsc": "tsc --outDir dist",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^23.3.5",
+    "@types/node": "^10.11.7",
     "jest": "^23.6.0",
+    "ts-jest": "^23.10.4",
     "typescript": "^3.1.2"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "ts-jest"
+    },
+    "testRegex": "tests/.*\\.test\\.(js|ts)x?$",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.ts?(x)"
+    ]
   }
 }

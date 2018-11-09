@@ -19,8 +19,14 @@ export default class CodeWriter {
         fs.writeFileSync(fileName, '');
     }
 
-    public writeArithmetic(_command: string): void {
-        console.log(`writeArithmetic(${_command})`);
+    public writeArithmetic(command: string): void {
+        //console.log(`writeArithmetic(${command})`);
+        if (command === 'add') {
+            this.writeAdd();
+        }
+    }
+
+    private writeAdd(): void {
         this.writePop('local', 0);
         this.writePop('local', 1);
 
@@ -53,7 +59,7 @@ export default class CodeWriter {
     }
 
     private writePush(segment: string, index: number) {
-        console.log(`writePush(${segment}, ${index})`);
+        //console.log(`writePush(${segment}, ${index})`);
         let output = '';
         if (segment === 'constant') {
             output += `@${index}` + '\n';
@@ -79,7 +85,7 @@ export default class CodeWriter {
     }
 
     private writePop(segment: string, index: number) {
-        console.log(`writePop(${segment}, ${index})`);
+        //console.log(`writePop(${segment}, ${index})`);
         let output = '';
         // R5 = segment Addr
         output += `@${segmentMap[segment]}` + '\n';

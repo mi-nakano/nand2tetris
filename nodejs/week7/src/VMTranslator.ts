@@ -6,10 +6,10 @@ if (process.argv.length !== 3) {
     throw new Error();
 }
 
-const fileName = process.argv[2];
-const parser = new Parser(`${fileName}.vm`);
+const fileName = process.argv[2];   // fileName.vm
+const parser = new Parser(`${fileName}`);
 const codeWriter = new CodeWriter();
-codeWriter.setFileName(`${fileName}.asm`);
+codeWriter.setFileName(`${fileName.replace('.vm', '')}.asm`);
 
 while (parser.hasMoreCommands()) {
     parser.advance();

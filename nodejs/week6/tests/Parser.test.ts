@@ -29,7 +29,7 @@ describe('Parser', () => {
 
     describe('advance & hasMoreCommands', () => {
         it('', () => {
-            const parser = new Parser('./tests/parser.test.data');
+            const parser = new Parser('./week6/tests/parser.test.data');
             expect(parser.hasMoreCommands()).toBe(true);
             parser.advance();
             expect(parser.hasMoreCommands()).toBe(true);

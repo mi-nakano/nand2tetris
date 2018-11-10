@@ -10,8 +10,10 @@ const segmentMap: Record<string, string> = {
 
 export default class CodeWriter {
     private fileName: string;
+    private labelIndex: number;
 
     constructor() {
+        this.labelIndex = 0;
     }
 
     public setFileName(fileName: string): void {
@@ -21,125 +23,95 @@ export default class CodeWriter {
 
     public writeArithmetic(command: string): void {
         //console.log(`writeArithmetic(${command})`);
-
         if (command === 'add') {
-            this.writeAdd();
+            this.writeBinaryOp('+');
         } else if (command === 'sub') {
-            this.writeSub();
+            this.writeBinaryOp('-');
         } else if (command === 'and') {
-            this.writeAnd();
+            this.writeBinaryOp('&');
         } else if (command === 'or') {
-            this.writeOr();
+            this.writeBinaryOp('|');
         } else if (command === 'not') {
-            this.writeNot();
+            this.writeUnaryOp('!');
         } else if (command === 'neg') {
-            this.writeNeg();
+            this.writeUnaryOp('-');
         } else if (command === 'eq') {
-            this.writeEq();
+            this.writeJump('JEQ');
         } else if (command === 'lt') {
-            this.writeLt();
+            this.writeJump('JLT');
         } else if (command === 'gt') {
-            this.writeGt();
+            this.writeJump('JGT');
         }
-
-        // temp 0 <- D
-        let output = '';
-        output += '@5' + '\n';
-        output += 'M=D' + '\n';
-        this.write(output);
-
-        this.writePush('temp', 0);
     }
 
-    private writeAdd(): void {
-        this.writePop('temp', 0);
+    private writePushD() {
+        let output = '';
+
+        // SP = D
+        output += '@SP' + '\n';
+        output += 'A=M' + '\n';
+        output += 'M=D' + '\n';
+
+        // increment SP
+        output += '@SP' + '\n';
+        output += 'M=M+1' + '\n';
+
+        this.write(output);
+    }
+
+    private writeBinaryOp(op: string): void {
         this.writePop('temp', 1);
+        this.writePop('temp', 0);
 
         let output = '';
         output += '@5' + '\n';  // temp 0
         output += 'D=M' + '\n';
         output += '@6' + '\n';  // temp 1
-        output += 'D=D+M' + '\n';
+        output += `D=D${op}M` + '\n';
         this.write(output);
+
+        this.writePushD();
     }
 
-    private writeSub(): void {
+    private writeUnaryOp(op: string): void {
         this.writePop('temp', 0);
+
+        let output = '';
+        output += '@5' + '\n';  // temp 0
+        output += `D=${op}M` + '\n';
+        this.write(output);
+
+        this.writePushD();
+    }
+
+    private writeJump(jumpOp: string): void {
+        const index = this.labelIndex++;
+
         this.writePop('temp', 1);
+        this.writePop('temp', 0);
 
         let output = '';
         output += '@5' + '\n';  // temp 0
         output += 'D=M' + '\n';
         output += '@6' + '\n';  // temp 1
         output += 'D=D-M' + '\n';
+        output += `@Jumptrue${index}` + '\n';
+        output += `D;${jumpOp}` + '\n'; // jump to label
+
+        // prediction is false
+        output += 'D=0' + '\n';
+        output += `@Jumpend${index}` + '\n';
+        output += '0;JMP' + '\n';
+
+        // prediction is true
+        output += `(Jumptrue${index})` + '\n';
+        output += 'D=-1' + '\n';
+
+        output += `(Jumpend${index})` + '\n';
         this.write(output);
+
+        this.writePushD();
     }
-
-    private writeAnd(): void {
-        this.writePop('temp', 0);
-        this.writePop('temp', 1);
-
-        let output = '';
-        output += '@5' + '\n';  // temp 0
-        output += 'D=M' + '\n';
-        output += '@6' + '\n';  // temp 1
-        output += 'D=D&M' + '\n';
-        this.write(output);
-    }
-
-    private writeOr(): void {
-        this.writePop('temp', 0);
-        this.writePop('temp', 1);
-
-        let output = '';
-        output += '@5' + '\n';  // temp 0
-        output += 'D=M' + '\n';
-        output += '@6' + '\n';  // temp 1
-        output += 'D=D|M' + '\n';
-        this.write(output);
-    }
-
-    private writeNot(): void {
-        this.writePop('temp', 0);
-
-        let output = '';
-        output += '@5' + '\n';  // temp 0
-        output += 'D=!M' + '\n';
-        this.write(output);
-    }
-
-    private writeNeg(): void {
-        this.writePop('temp', 0);
-
-        let output = '';
-        output += '@5' + '\n';  // temp 0
-        output += 'D=-M' + '\n';
-        this.write(output);
-    }
-
-    private writeEq(): void {
-        this.writePop('temp', 0);
-        this.writePop('temp', 1);
-
-        let output = '';
-        this.write(output);
-    }
-
-    private writeGt(): void {
-        this.writePop('temp', 0);
-        this.writePop('temp', 1);
-
-        let output = '';
-        this.write(output);
-    }
-    private writeLt(): void {
-        this.writePop('temp', 0);
-        this.writePop('temp', 1);
-
-        let output = '';
-        this.write(output);
-    }
-
 
     public writePushPop(type: CommandType, segment: string, index: number): void {
         if (type === CommandType.C_PUSH) {
@@ -169,16 +141,9 @@ export default class CodeWriter {
             output += 'A=D' + '\n';
             output += 'D=M' + '\n';
         }
-
-        // SP = D
-        output += '@SP' + '\n';
-        output += 'A=M' + '\n';
-        output += 'M=D' + '\n';
-
-        // increment SP
-        output += '@SP' + '\n';
-        output += 'M=M+1' + '\n';
         this.write(output);
+
+        this.writePushD();
     }
 
     private writePop(segment: string, index: number) {

@@ -2,7 +2,11 @@ import Parser from './Parser';
 import CodeWriter from './CodeWriter';
 import { CommandType } from './Enum';
 
-const fileName = 'SimpleAdd'
+if (process.argv.length !== 3) {
+    throw new Error();
+}
+
+const fileName = process.argv[2];
 const parser = new Parser(`${fileName}.vm`);
 const codeWriter = new CodeWriter();
 codeWriter.setFileName(`${fileName}.asm`);

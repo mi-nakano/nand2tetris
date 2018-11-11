@@ -41,6 +41,8 @@ export default class CodeWriter {
             this.writeJump('JLT');
         } else if (command === 'gt') {
             this.writeJump('JGT');
+        } else {
+            throw new Error(`${command} is not Arithmetic!`);
         }
     }
 
@@ -68,7 +70,7 @@ export default class CodeWriter {
         output += `@${labelName}\n`; // jump
         output += '0;JMP\n';
 
-        output += `(Ifend${index})\n`; // not jump
+        output += `(Ifend${index})\n`; // donot jump
         this.write(output);
     }
 

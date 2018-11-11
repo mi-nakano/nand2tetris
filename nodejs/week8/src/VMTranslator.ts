@@ -32,5 +32,7 @@ while (parser.hasMoreCommands()) {
         case CommandType.C_IF:
             codeWriter.writeIf(parser.arg1());
             break;
+        default:
+            throw new Error('unknown CommandType');
     }
 }

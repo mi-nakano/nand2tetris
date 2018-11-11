@@ -43,12 +43,23 @@ export default class Parser {
     }
 
     public commandType(): CommandType {
-        if (this.line.startsWith('pop')) {
-            return CommandType.C_POP;
+        const commandMap: Record<string, CommandType> = {
+            'pop': CommandType.C_POP,
+            'push': CommandType.C_PUSH,
+            'goto': CommandType.C_GOTO,
+            'if-goto': CommandType.C_IF,
+            'function': CommandType.C_FUNCTION,
+            'return': CommandType.C_RETURN,
+            'call': CommandType.C_CALL,
+            '(': CommandType.C_LABEL,
         }
-        if (this.line.startsWith('push')) {
-            return CommandType.C_PUSH;
+
+        for (const key in commandMap) {
+            if (this.line.startsWith(key)) {
+                return commandMap[key];
+            }
         }
+
         return CommandType.C_ARITHMETIC;
     }
 

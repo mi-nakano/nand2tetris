@@ -74,6 +74,106 @@ export default class CodeWriter {
         this.write(output);
     }
 
+    public writeCall(functionName: string, numArgs: number): void {
+        const index = this.labelIndex++;
+        let output: string = '';
+
+        // push retur-address
+        output += `@return${index}\n`;
+        output += 'D=A\n';
+        this.write(output);
+        this.writePushD();
+
+        // save frame addresses
+        this.writePushSymbolValue('LCL');
+        this.writePushSymbolValue('ARG');
+        this.writePushSymbolValue('THIS');
+        this.writePushSymbolValue('THAT');
+
+        // ARG = SP - ${numArgs} - 5
+        output = '';
+        output += '@SP\n';
+        output += 'D=A\n';
+        output += `@${numArgs + 5}\n`;
+        output += 'D=D-A\n';
+        this.write(output);
+        this.writeSetSymbol('ARG');
+
+        // LCL = SP
+        output = '';
+        output += '@SP\n';
+        output += 'A=M\n';
+        output += 'D=M\n';
+        this.write(output);
+        this.writeSetSymbol('LCL');
+
+        this.writeGoto(functionName);
+
+        this.write(`(return${index})\n`);
+
+    }
+
+    public writeReturn(): void {
+        // FRAME: @R14, RET: @R15
+        // FRAME = LCL
+        let output = '';
+        output += '@LCL\n';
+        output += 'D=M\n';
+        output += '@R14\n';
+        output += 'M=D\n';
+        this.write(output);
+
+        // RET = * (FRAME - 5)
+        output = '';
+        output += '@R14\n';
+        output += 'D=M\n';
+        output += '@5\n';
+        output += 'A=D-A\n';
+        output += 'D=M\n';
+        output += '@R15\n';
+        output += 'M=D\n';
+        this.write(output);
+
+        // * ARG = pop()
+        this.writePop('temp', 0);
+        output = '';
+        output += '@5\n';  // temp 0
+        output += 'D=M\n';
+        output += '@ARG\n';
+        output += 'A=M\n';
+        output += 'M=D\n';
+        this.write(output);
+
+        // SP = ARG+1
+        output = ''
+        output += '@ARG\n';
+        output += 'D=M+1\n';
+        output += '@SP\n';
+        output += 'M=D\n';
+        this.write(output);
+
+        // THAT = *(FRAME - 1). THIS = *(FRAME - 2). ARG = *(FRAME - 3). LCL = *(FRAME - 4)
+        this.writeSetFrame('THAT', 1);
+        this.writeSetFrame('THIS', 2);
+        this.writeSetFrame('ARG', 3);
+        this.writeSetFrame('LCL', 4);
+
+        // goto RET
+        output = ''
+        output += '@R15\n';
+        output += 'A=M\n';
+        output += '0;JMP\n';
+        this.write(output);
+    }
+
+    public writeFunction(functionName: string, numArgs: number): void {
+        this.write(`(${functionName})\n`);
+
+        for (let i = 0; i < numArgs; i++) {
+            this.writePush('constant', 0);
+        }
+    }
+
     private writePushD() {
         let output = '';
 
@@ -86,6 +186,39 @@ export default class CodeWriter {
         output += '@SP' + '\n';
         output += 'M=M+1' + '\n';
 
+        this.write(output);
+    }
+
+
+    private writePushSymbolValue(symbolName: string) {
+        let output = '';
+        output += `@${symbolName}\n`;
+        output += 'D=M' + '\n';
+        this.write(output);
+
+        this.writePushD();
+    }
+
+    // ex) @SP = D
+    private writeSetSymbol(symbolName: string) {
+        let output = '';
+        output += `@${symbolName}\n`;
+        output += 'A=M' + '\n';
+        output += 'M=D' + '\n';
+        this.write(output);
+    }
+
+    // FRAME: @R14
+    // ex) THAT = *(FRAME - 1)
+    private writeSetFrame(symbolName: string, offset: number) {
+        let output = '';
+        output += '@R14\n'
+        output += 'D=M' + '\n';
+        output += `@${offset}\n`
+        output += 'A=D-A\n';
+        output += 'D=M' + '\n';
+        output += `@${symbolName}\n`;
+        output += 'M=D' + '\n';
         this.write(output);
     }
 

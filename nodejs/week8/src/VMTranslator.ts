@@ -32,6 +32,15 @@ while (parser.hasMoreCommands()) {
         case CommandType.C_IF:
             codeWriter.writeIf(parser.arg1());
             break;
+        case CommandType.C_CALL:
+            codeWriter.writeCall(parser.arg1(), parser.arg2());
+            break;
+        case CommandType.C_RETURN:
+            codeWriter.writeReturn();
+            break;
+        case CommandType.C_FUNCTION:
+            codeWriter.writeFunction(parser.arg1(), parser.arg2());
+            break;
         default:
             throw new Error('unknown CommandType');
     }

@@ -44,6 +44,34 @@ export default class CodeWriter {
         }
     }
 
+    public writeLabel(labelName: string): void {
+        this.write(`(${labelName})\n`);
+    }
+
+    public writeGoto(labelName: string): void {
+        let output = '';
+        output += `@${labelName}\n`;
+        output += '0;JMP\n';
+        this.write(output);
+    }
+
+    public writeIf(labelName: string): void {
+        const index = this.labelIndex++;
+        this.writePop('temp', 0);
+
+        let output = '';
+        output += '@5' + '\n';  // temp 0
+        output += 'D=M' + '\n';
+        output += `@Ifend${index}\n`;
+        output += 'D;JEQ\n';
+
+        output += `@${labelName}\n`; // jump
+        output += '0;JMP\n';
+
+        output += `(Ifend${index})\n`; // not jump
+        this.write(output);
+    }
+
     private writePushD() {
         let output = '';
 

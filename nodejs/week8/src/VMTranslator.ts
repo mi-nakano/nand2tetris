@@ -24,10 +24,10 @@ if (path.endsWith('.vm')) { // only 1 vm file
     }
 }
 
-const codeWriter = new CodeWriter();
-codeWriter.setFileName(asmFileName);
+const codeWriter = new CodeWriter(asmFileName);
 codeWriter.writeInit();
 for (let vmFile of vmFiles) {
+    codeWriter.setFileName(vmFile);
     const parser = new Parser(`${vmFile}`);
     translateVM(parser, codeWriter);
 }

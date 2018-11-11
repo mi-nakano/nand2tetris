@@ -10,15 +10,17 @@ const segmentMap: Record<string, string> = {
 
 export default class CodeWriter {
     private fileName: string;
+    private className: string;
     private labelIndex: number;
 
-    constructor() {
+    constructor(outputFileName: string) {
         this.labelIndex = 0;
+        this.fileName = outputFileName;
+        fs.writeFileSync(outputFileName, '');
     }
 
     public setFileName(fileName: string): void {
-        this.fileName = fileName;
-        fs.writeFileSync(fileName, '');
+        this.className = fileName.replace(/^.*\//, '');
     }
 
     public writeInit(): void {
@@ -315,6 +317,9 @@ export default class CodeWriter {
             output += `@${3 + index}` + '\n'; output += 'D=M' + '\n';
         } else if (segment === 'temp') {
             output += `@${5 + index}` + '\n'; output += 'D=M' + '\n';
+        } else if (segment === 'static') {
+            output += `@${this.className}.${index}` + '\n';
+            output += 'D=M' + '\n';
         } else {
             output += `@${segmentMap[segment]}` + '\n';
             output += 'D=M' + '\n';
@@ -338,6 +343,9 @@ export default class CodeWriter {
             output += 'D=A' + '\n';
         } else if (segment === 'temp') {
             output += `@${5 + index}` + '\n';
+            output += 'D=A' + '\n';
+        } else if (segment === 'static') {
+            output += `@${this.className}.${index}` + '\n';
             output += 'D=A' + '\n';
         } else {
             output += `@${segmentMap[segment]}` + '\n';

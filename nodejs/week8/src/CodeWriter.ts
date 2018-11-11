@@ -70,10 +70,10 @@ export default class CodeWriter {
 
     public writeIf(labelName: string): void {
         const index = this.labelIndex++;
-        this.writePop('temp', 0);
+        this.writePop('register', 0);
 
         let output = '';
-        output += '@5' + '\n';  // temp 0
+        output += '@13' + '\n';  // register 0
         output += 'D=M' + '\n';
         output += `@Ifend${index}\n`;
         output += 'D;JEQ\n';
@@ -146,9 +146,9 @@ export default class CodeWriter {
         this.write(output);
 
         // * ARG = pop()
-        this.writePop('temp', 0);
+        this.writePop('register', 0);
         output = '';
-        output += '@5\n';  // temp 0
+        output += '@13\n';  // register 0
         output += 'D=M\n';
         output += '@ARG\n';
         output += 'A=M\n';
@@ -200,7 +200,6 @@ export default class CodeWriter {
         this.write(output);
     }
 
-
     private writePushSymbolValue(symbolName: string) {
         let output = '';
         output += `@${symbolName}\n`;
@@ -244,13 +243,13 @@ export default class CodeWriter {
     }
 
     private writeBinaryOp(op: string): void {
-        this.writePop('temp', 1);
-        this.writePop('temp', 0);
+        this.writePop('register', 1);
+        this.writePop('register', 0);
 
         let output = '';
-        output += '@5' + '\n';  // temp 0
+        output += '@13' + '\n';  // register 0
         output += 'D=M' + '\n';
-        output += '@6' + '\n';  // temp 1
+        output += '@14' + '\n';  // register 1
         output += `D=D${op}M` + '\n';
         this.write(output);
 
@@ -258,10 +257,10 @@ export default class CodeWriter {
     }
 
     private writeUnaryOp(op: string): void {
-        this.writePop('temp', 0);
+        this.writePop('register', 0);
 
         let output = '';
-        output += '@5' + '\n';  // temp 0
+        output += '@13' + '\n';  // register 0
         output += `D=${op}M` + '\n';
         this.write(output);
 
@@ -271,13 +270,13 @@ export default class CodeWriter {
     private writeJump(jumpOp: string): void {
         const index = this.labelIndex++;
 
-        this.writePop('temp', 1);
-        this.writePop('temp', 0);
+        this.writePop('register', 1);
+        this.writePop('register', 0);
 
         let output = '';
-        output += '@5' + '\n';  // temp 0
+        output += '@13' + '\n';  // register 0
         output += 'D=M' + '\n';
-        output += '@6' + '\n';  // temp 1
+        output += '@14' + '\n';  // register 1
         output += 'D=D-M' + '\n';
         output += `@Jumptrue${index}` + '\n';
         output += `D;${jumpOp}` + '\n'; // jump to label
@@ -346,6 +345,9 @@ export default class CodeWriter {
             output += 'D=A' + '\n';
         } else if (segment === 'static') {
             output += `@${this.className}.${index}` + '\n';
+            output += 'D=A' + '\n';
+        } else if (segment === 'register') {
+            output += `@${13 + index}` + '\n';
             output += 'D=A' + '\n';
         } else {
             output += `@${segmentMap[segment]}` + '\n';

@@ -51,7 +51,7 @@ export default class Parser {
             'function': CommandType.C_FUNCTION,
             'return': CommandType.C_RETURN,
             'call': CommandType.C_CALL,
-            '(': CommandType.C_LABEL,
+            'label': CommandType.C_LABEL,
         }
 
         for (const key in commandMap) {

@@ -104,19 +104,20 @@ export default class CodeWriter {
         // ARG = SP - ${numArgs} - 5
         output = '';
         output += '@SP\n';
-        output += 'D=A\n';
+        output += 'D=M\n';
         output += `@${numArgs + 5}\n`;
         output += 'D=D-A\n';
+        output += '@ARG\n';
+        output += 'M=D\n';
         this.write(output);
-        this.writeSetSymbolAddr('ARG');
 
         // LCL = SP
         output = '';
         output += '@SP\n';
-        output += 'A=M\n';
         output += 'D=M\n';
+        output += '@LCL\n';
+        output += 'M=D\n';
         this.write(output);
-        this.writeSetSymbolAddr('LCL');
 
         this.writeGoto(functionName);
 
@@ -215,15 +216,6 @@ export default class CodeWriter {
         output += `@${constant}\n`;
         output += 'D=A' + '\n';
         output += `@${symbolName}\n`;
-        output += 'M=D' + '\n';
-        this.write(output);
-    }
-
-    // ex) * SP = D
-    private writeSetSymbolAddr(symbolName: string) {
-        let output = '';
-        output += `@${symbolName}\n`;
-        output += 'A=M' + '\n';
         output += 'M=D' + '\n';
         this.write(output);
     }

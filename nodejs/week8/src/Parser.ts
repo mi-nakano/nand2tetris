@@ -21,12 +21,10 @@ export default class Parser {
     }
 
     public static shape(str: string): string {
+        str = str.split('//')[0];   // remove comment
         str = str.replace(/^\s+/, '');
         str = str.replace(/\s+$/, '');
         str = str.replace(/\s{2,}/g, ' ');
-        if (str.startsWith('//')) {
-            return '';
-        }
         return str;
     }
 

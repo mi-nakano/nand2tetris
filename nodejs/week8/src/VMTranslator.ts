@@ -10,13 +10,17 @@ if (process.argv.length !== 3) {
 const path = process.argv[2];   // fileName.vm or directory
 const vmFiles: string[] = [];
 let asmFileName;
+let codeWriter: CodeWriter;
 
 if (path.endsWith('.vm')) { // only 1 vm file
     vmFiles.push(path)
     asmFileName = path.replace('.vm', '') + '.asm';
+    codeWriter = new CodeWriter(asmFileName);
 } else {    // all .vm files in directory
     const dirName = path.replace(/.*\//, '');
     asmFileName = `${path}/${dirName}.asm`;
+    codeWriter = new CodeWriter(asmFileName);
+    codeWriter.writeInit();
     for (const fileName of fs.readdirSync(path)) {
         if (fileName.endsWith('.vm')) {
             vmFiles.push(`${path}/${fileName}`);
@@ -24,8 +28,6 @@ if (path.endsWith('.vm')) { // only 1 vm file
     }
 }
 
-const codeWriter = new CodeWriter(asmFileName);
-codeWriter.writeInit();
 for (let vmFile of vmFiles) {
     codeWriter.setFileName(vmFile);
     const parser = new Parser(`${vmFile}`);

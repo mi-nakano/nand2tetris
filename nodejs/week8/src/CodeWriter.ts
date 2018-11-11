@@ -21,6 +21,15 @@ export default class CodeWriter {
         fs.writeFileSync(fileName, '');
     }
 
+    public writeInit(): void {
+        this.writeSetSymbol('SP', 256);
+        this.writeSetSymbol('LCL', 256);
+        this.writeSetSymbol('ARG', 1000);
+        this.writeSetSymbol('THIS', 3000);
+        this.writeSetSymbol('THAT', 4000);
+        this.writeCall('Sys.init', 0);
+    }
+
     public writeArithmetic(command: string): void {
         //console.log(`writeArithmetic(${command})`);
         if (command === 'add') {
@@ -97,7 +106,7 @@ export default class CodeWriter {
         output += `@${numArgs + 5}\n`;
         output += 'D=D-A\n';
         this.write(output);
-        this.writeSetSymbol('ARG');
+        this.writeSetSymbolAddr('ARG');
 
         // LCL = SP
         output = '';
@@ -105,7 +114,7 @@ export default class CodeWriter {
         output += 'A=M\n';
         output += 'D=M\n';
         this.write(output);
-        this.writeSetSymbol('LCL');
+        this.writeSetSymbolAddr('LCL');
 
         this.writeGoto(functionName);
 
@@ -199,8 +208,18 @@ export default class CodeWriter {
         this.writePushD();
     }
 
-    // ex) @SP = D
-    private writeSetSymbol(symbolName: string) {
+    // ex) SP = 256
+    private writeSetSymbol(symbolName: string, constant: number) {
+        let output = '';
+        output += `@${constant}\n`;
+        output += 'D=A' + '\n';
+        output += `@${symbolName}\n`;
+        output += 'M=D' + '\n';
+        this.write(output);
+    }
+
+    // ex) * SP = D
+    private writeSetSymbolAddr(symbolName: string) {
         let output = '';
         output += `@${symbolName}\n`;
         output += 'A=M' + '\n';

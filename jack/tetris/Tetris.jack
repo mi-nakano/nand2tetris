@@ -1,0 +1,16 @@
+class Tetris {
+
+    constructor Tetris new() {
+        return this;
+    }
+
+    method void run() {
+        return;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

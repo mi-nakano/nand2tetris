@@ -1,0 +1,22 @@
+/** Implements the Tetris board. */
+class Board {
+    static int numBoxW;     // num of horizontal boxes
+    static int numBoxH;    // num of vertical boxes
+    static int boxSize;      // num of box size
+
+    field Array array;       // array of boxes, which represent box state. (fill=1, empty=0)
+
+    /** Constructs a new Tetris board. */
+    constructor Board new() {
+        let numBoxW = 6;
+        let numBoxH = 10;
+        let boxSize = 2;
+        let array = Array.new();
+        return this;
+    }
+
+    /** draw this board */
+    method void draw() {
+        return;
+    }
+}

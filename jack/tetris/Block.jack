@@ -1,15 +1,15 @@
 /** Implements the Tetris Block. */
 class Block {
-    static int boxSize;      // num of box size
     static Board board;
+    static int boxSize;      // num of box size
 
-    field Array array;       // array of boxes, which represent box state. (fill=1, empty=0)
     field int x, y;          // (x, y) represents coordinate of block.
 
     /** Constructs a new Tetris board. */
     constructor Block new(Board b, int argx, int argy) {
         let board = b;
         let boxSize = 14;
+
         let x = argx;
         let y = argy;
         return this;
@@ -18,7 +18,15 @@ class Block {
     /** draw this block */
     method void draw() {
         do Screen.setColor(true);
-        do Screen.drawRectangle(board.x1() + (x * boxSize), board.y1() + (y * boxSize), board.x1() + ((x+1) * boxSize), board.y1() + ((y+1) * boxSize));
+        do Screen.drawRectangle(board.x1() + (x * boxSize), board.y1() + (y * boxSize), board.x1() + ((x+4) * boxSize), board.y1() + ((y+1) * boxSize));
         return;
+    }
+
+    /** getter */
+    method int x() {
+        return x;
+    }
+    method int y() {
+        return y;
     }
 }

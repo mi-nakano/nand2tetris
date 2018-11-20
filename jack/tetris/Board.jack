@@ -11,12 +11,30 @@ class Board {
 
     /** Constructs a new Tetris board. */
     constructor Board new() {
+        var int i, j;
+        var Array row;
+
         let maxW = 511;
         let maxH = 255;
-        let numBoxW = 8;
+        let numBoxW = 10;
         let numBoxH = 10;
         let boxSize = 14;
+
+        let i = 0;
         let array = Array.new(numBoxW);
+        while (i < numBoxW) {
+            let row = Array.new(numBoxH);
+            let array[i] = row;
+            let j = 0;
+            while (j < numBoxH) {
+                // bottom or most left or most right
+                if ((j = (numBoxH - 1)) | (i = 0) | (i = (numBoxW - 1))) {
+                    let row[j] = true;
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
 
         let x1 = (maxW / 2) - (numBoxW * boxSize / 2);
         let x2 = x1 + (numBoxW * boxSize);
@@ -27,10 +45,20 @@ class Board {
 
     /** draw this board */
     method void draw() {
-        do Screen.setColor(true);
-        do Screen.drawRectangle(x1, y1, x1 + boxSize, y2 + boxSize);
-        do Screen.drawRectangle(x1, y2, x2 + boxSize, y2 + boxSize);
-        do Screen.drawRectangle(x2, y1, x2 + boxSize, y2 + boxSize);
+        var int i, j;
+        var Array row;
+
+        let i = 0;
+        while (i < numBoxW) {
+            let row = array[i];
+            let j = 0;
+            while (j < numBoxH) {
+                do Screen.setColor(row[j]);
+                do Screen.drawRectangle(x1 + (i * boxSize), y1 + (j * boxSize), x1 + ((i+1) * boxSize), y1 + ((j+1) * boxSize));
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
         return;
     }
 

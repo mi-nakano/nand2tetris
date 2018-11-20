@@ -8,7 +8,7 @@ class Tetris {
     constructor Tetris new() {
         let board = Board.new();
         let blocks = Array.new(1);
-        let blocks[0] = Block.new(board, 0, 0);
+        let blocks[0] = Block.new(board, 0, -2);
         return this;
     }
 

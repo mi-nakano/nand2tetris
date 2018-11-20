@@ -6,6 +6,7 @@ class Board {
     static int numBoxH;    // num of vertical boxes
     static int boxSize;      // num of box size
 
+    field int x1, x2, y1, y2;  // board position
     field Array array;       // array of boxes, which represent box state. (fill=1, empty=0)
 
     /** Constructs a new Tetris board. */
@@ -16,21 +17,34 @@ class Board {
         let numBoxH = 10;
         let boxSize = 14;
         let array = Array.new(numBoxW);
+
+        let x1 = (maxW / 2) - (numBoxW * boxSize / 2);
+        let x2 = x1 + (numBoxW * boxSize);
+        let y1 = maxH - (numBoxW * boxSize);
+        let y2 = maxH - boxSize;
         return this;
     }
 
     /** draw this board */
     method void draw() {
-        var int x1, x2, y1, y2;
-        let x1 = (maxW / 2) - (numBoxW * boxSize / 2);
-        let x2 = x1 + (numBoxW * boxSize);
-        let y1 = maxH - (numBoxW * boxSize);
-        let y2 = maxH - boxSize;
-
         do Screen.setColor(true);
         do Screen.drawRectangle(x1, y1, x1 + boxSize, y2 + boxSize);
         do Screen.drawRectangle(x1, y2, x2 + boxSize, y2 + boxSize);
         do Screen.drawRectangle(x2, y1, x2 + boxSize, y2 + boxSize);
         return;
+    }
+
+    /** getter */
+    method int x1() {
+        return x1;
+    }
+    method int x2() {
+        return x2;
+    }
+    method int y1() {
+        return y1;
+    }
+    method int y2() {
+        return y2;
     }
 }

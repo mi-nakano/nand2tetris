@@ -2,9 +2,13 @@
 class Tetris {
     field int score;
     field Board board;
+    field Array blocks;
 
     /** Constructs a new Tetris Game. */
     constructor Tetris new() {
+        let board = Board.new();
+        let blocks = Array.new(1);
+        let blocks[0] = Block.new(board, 0, 0);
         return this;
     }
 
@@ -12,12 +16,16 @@ class Tetris {
     method void run() {
         var char key;  // the key currently pressed by the user
         var boolean exit;
+        var int blockIndex;
+        var Block block;
 
         let key = 0;
-        let board = Board.new();
+        let blockIndex = 0;
         let exit = false;
         while (~exit) {
             do board.draw();
+            let block = blocks[blockIndex];
+            do block.draw();
 
             // waits for a key to be pressed
             while (key = 0) {

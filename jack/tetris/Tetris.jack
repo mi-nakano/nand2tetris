@@ -1,6 +1,7 @@
 /** Implements the Tetris game. */
 class Tetris {
     field int score;
+    field Board board;
 
     /** Constructs a new Tetris Game. */
     constructor Tetris new() {
@@ -13,8 +14,11 @@ class Tetris {
         var boolean exit;
 
         let key = 0;
+        let board = Board.new();
         let exit = false;
         while (~exit) {
+            do board.draw();
+
             // waits for a key to be pressed
             while (key = 0) {
                 let key = Keyboard.keyPressed();
@@ -26,6 +30,8 @@ class Tetris {
                 let key = Keyboard.keyPressed();
             }
         }
+
+        do Screen.clearScreen();
         return;
     }
 

@@ -1,5 +1,7 @@
 /** Implements the Tetris board. */
 class Board {
+    static int maxW;
+    static int maxH;
     static int numBoxW;     // num of horizontal boxes
     static int numBoxH;    // num of vertical boxes
     static int boxSize;      // num of box size
@@ -8,15 +10,27 @@ class Board {
 
     /** Constructs a new Tetris board. */
     constructor Board new() {
-        let numBoxW = 6;
+        let maxW = 511;
+        let maxH = 255;
+        let numBoxW = 8;
         let numBoxH = 10;
-        let boxSize = 2;
-        let array = Array.new();
+        let boxSize = 14;
+        let array = Array.new(numBoxW);
         return this;
     }
 
     /** draw this board */
     method void draw() {
+        var int x1, x2, y1, y2;
+        let x1 = (maxW / 2) - (numBoxW * boxSize / 2);
+        let x2 = x1 + (numBoxW * boxSize);
+        let y1 = maxH - (numBoxW * boxSize);
+        let y2 = maxH - boxSize;
+
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x1, y1, x1 + boxSize, y2 + boxSize);
+        do Screen.drawRectangle(x1, y2, x2 + boxSize, y2 + boxSize);
+        do Screen.drawRectangle(x2, y1, x2 + boxSize, y2 + boxSize);
         return;
     }
 }

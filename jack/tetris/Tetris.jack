@@ -8,7 +8,7 @@ class Tetris {
     constructor Tetris new() {
         let board = Board.new();
         let blocks = Array.new(1);
-        let blocks[0] = Block.new(board, 0, -2);
+        let blocks[0] = Block.new(board, 1, -2);
         return this;
     }
 
@@ -31,7 +31,28 @@ class Tetris {
             while (key = 0) {
                 let key = Keyboard.keyPressed();
             }
-            if (key = 81)  { let exit = true; }     // q key
+            if (key = 81)  {        // q key
+                let exit = true;
+            }
+            if (key = 133) {          // down arrow
+                // nothing
+            }
+            if (key = 130) {          // left arrow
+                do block.clear();
+                do block.moveLeft();
+                do block.draw();
+            }
+            if (key = 132) {          // right arrow
+                do block.clear();
+                do block.moveRight();
+                do block.draw();
+            }
+
+            // block move down
+            do Sys.wait(50);
+            do block.clear();
+            do block.moveDown();
+            do block.draw();
 
             // waits for the key to be released
             while (~(key = 0)) {

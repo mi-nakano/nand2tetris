@@ -7,7 +7,7 @@ class Board {
     static int boxSize;      // num of box size
 
     field int x1, x2, y1, y2;  // board position
-    field Array array;       // array of boxes, which represent box state. (fill=1, empty=0)
+    field Array cells;       // array of cells, which represent box state. (fill=1, empty=0)
 
     /** Constructs a new Tetris board. */
     constructor Board new() {
@@ -21,10 +21,10 @@ class Board {
         let boxSize = 14;
 
         let i = 0;
-        let array = Array.new(numBoxW);
+        let cells = Array.new(numBoxW);
         while (i < numBoxW) {
             let row = Array.new(numBoxH);
-            let array[i] = row;
+            let cells[i] = row;
             let j = 0;
             while (j < numBoxH) {
                 // bottom or most left or most right
@@ -50,7 +50,7 @@ class Board {
 
         let i = 0;
         while (i < numBoxW) {
-            let row = array[i];
+            let row = cells[i];
             let j = 0;
             while (j < numBoxH) {
                 do Screen.setColor(row[j]);
@@ -74,5 +74,8 @@ class Board {
     }
     method int y2() {
         return y2;
+    }
+    method Array cells() {
+        return cells;
     }
 }

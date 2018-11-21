@@ -7,8 +7,10 @@ class Tetris {
     /** Constructs a new Tetris Game. */
     constructor Tetris new() {
         let board = Board.new();
-        let blocks = Array.new(1);
-        let blocks[0] = Block.new(board, 1, -2);
+        let blocks = Array.new(3);
+        let blocks[0] = Block.new(board, 3, -2);
+        let blocks[1] = Block.new(board, 3, -2);
+        let blocks[2] = Block.new(board, 3, -2);
         return this;
     }
 
@@ -54,13 +56,24 @@ class Tetris {
             do block.moveDown();
             do block.draw();
 
+            // current block touch the ground
+            if (~block.canFall()) {
+                do block.clear();
+                do board.setCell(block);
+                do board.draw();
+                let blockIndex = blockIndex + 1;
+            }
+            if (blockIndex > 2) {
+                let exit = true;
+            }
+
             // waits for the key to be released
             while (~(key = 0)) {
                 let key = Keyboard.keyPressed();
             }
         }
 
-        do Screen.clearScreen();
+        do Output.printString("Game End");
         return;
     }
 

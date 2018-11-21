@@ -70,6 +70,15 @@ class Block {
         return;
     }
 
+    /** if this block can move down then return true */
+    method boolean canFall() {
+        var boolean flag;
+        let y = y + 1;
+        let flag = isCollideBoard();
+        let y = y - 1;
+        return ~flag;
+    }
+
     /** if this block collide to Board then return true */
     method boolean isCollideBoard() {
         var Array cells;
@@ -85,10 +94,10 @@ class Block {
         }
 
         let cells = board.cells();
-        let i = x;
+        let i = 0;
         while (i < 4) {
             let j = 0;
-            let row = cells[i];
+            let row = cells[x + i];
             if (row[y]) {       // row[y] is cell in the board
                 return true;
             }

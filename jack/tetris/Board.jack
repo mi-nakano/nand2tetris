@@ -62,6 +62,19 @@ class Board {
         return;
     }
 
+    /** set cells true */
+    method void setCell(Block block) {
+        var int i;
+        var Array row;
+
+        while (i < 4) {
+            let row = cells[block.x() + i];
+            let row[block.y()] = true;
+            let i = i + 1;
+        }
+        return;
+    }
+
     /** getter */
     method int x1() {
         return x1;

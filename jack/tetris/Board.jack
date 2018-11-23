@@ -75,6 +75,66 @@ class Board {
         return;
     }
 
+    /** delete line of blocks if a line is filled with blocks */
+    method void tryDeleteLine() {
+        var int i, j;
+        var boolean deleteFlag;
+        var Array row;
+        var boolean cell;
+
+        let i = 8;
+        while(i > 0) {  // from bottom line(except board frame) to top line
+            let deleteFlag = true;
+            let row = cells[i];
+            let j = 1;
+            while (j < 9) {     // column inside board frame
+                let cell = row[j];
+                if (~cell) {        // cell is empty
+                    let deleteFlag = false;
+                }
+                let j = j + 1;
+            }
+            if (deleteFlag) {     // this line is filled with blocks
+                do deleteLine(i);
+            }
+
+            let i = i - 1;
+        }
+        return;
+    }
+
+    method void deleteLine(int rowIndex) {
+        var int i, j;
+        var Array row, aboveRow;
+        var boolean cell;
+
+        // delete line and repaint board
+        let row = cells[rowIndex];
+        let j = 1;
+        while(j < 9) {
+            let row[j] = false;
+            let j = j + 1;
+        }
+        do draw();
+        do Sys.wait(50);
+
+        // blocks fall down and repaint board
+        let i = rowIndex;       // above delete line
+        while(i > 0) {
+            let row = cells[i];
+            let aboveRow = cells[i - 1];
+            let j = 1;
+            while(j < 9) {
+                let row[j] = aboveRow[j];
+                let j = j + 1;
+            }
+            let i = i - 1;
+        }
+        do draw();
+
+        return;
+    }
+
     /** getter */
     method int x1() {
         return x1;

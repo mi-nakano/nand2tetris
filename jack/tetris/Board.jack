@@ -21,14 +21,14 @@ class Board {
         let boxSize = 14;
 
         let i = 0;
-        let cells = Array.new(numBoxW);
-        while (i < numBoxW) {
-            let row = Array.new(numBoxH);
+        let cells = Array.new(numBoxH);
+        while (i < numBoxH) {
+            let row = Array.new(numBoxW);
             let cells[i] = row;
             let j = 0;
-            while (j < numBoxH) {
+            while (j < numBoxW) {
                 // bottom or most left or most right
-                if ((j = (numBoxH - 1)) | (i = 0) | (i = (numBoxW - 1))) {
+                if ((i = (numBoxH - 1)) | (j = 0) | (j = (numBoxW - 1))) {
                     let row[j] = true;
                 }
                 let j = j + 1;
@@ -49,12 +49,12 @@ class Board {
         var Array row;
 
         let i = 0;
-        while (i < numBoxW) {
+        while (i < numBoxH) {
             let row = cells[i];
             let j = 0;
-            while (j < numBoxH) {
+            while (j < numBoxW) {
                 do Screen.setColor(row[j]);
-                do Screen.drawRectangle(x1 + (i * boxSize), y1 + (j * boxSize), x1 + ((i+1) * boxSize), y1 + ((j+1) * boxSize));
+                do Screen.drawRectangle(x1 + (j * boxSize), y1 + (i * boxSize), x1 + ((j+1) * boxSize), y1 + ((i+1) * boxSize));
                 let j = j + 1;
             }
             let i = i + 1;
@@ -67,9 +67,9 @@ class Board {
         var int i;
         var Array row;
 
+        let row = cells[block.y()];
         while (i < 4) {
-            let row = cells[block.x() + i];
-            let row[block.y()] = true;
+            let row[block.x() + i] = true;
             let i = i + 1;
         }
         return;

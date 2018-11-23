@@ -94,11 +94,11 @@ class Block {
         }
 
         let cells = board.cells();
+        let row = cells[y];
         let i = 0;
         while (i < 4) {
             let j = 0;
-            let row = cells[x + i];
-            if (row[y]) {       // row[y] is cell in the board
+            if (row[x+i]) {       // row[y] is cell in the board
                 return true;
             }
             let i = i + 1;

@@ -1,6 +1,6 @@
 /** Implements the Tetris Block. */
 class Block {
-    static Board board;
+    static Board board;      // pointer of board
     static int boxSize;      // num of box size
 
     field int x, y;          // (x, y) represents coordinate of block.

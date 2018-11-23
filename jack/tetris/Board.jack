@@ -1,7 +1,7 @@
 /** Implements the Tetris board. */
 class Board {
-    static int maxW;
-    static int maxH;
+    static int maxW;        // board width
+    static int maxH;        // board height
     static int numBoxW;     // num of horizontal boxes
     static int numBoxH;    // num of vertical boxes
     static int boxSize;      // num of box size
@@ -103,6 +103,7 @@ class Board {
         return;
     }
 
+    /** delete line(cells[rowIndex]) */
     method void deleteLine(int rowIndex) {
         var int i, j;
         var Array row, aboveRow;

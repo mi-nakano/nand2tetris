@@ -1,8 +1,7 @@
 /** Implements the Tetris game. */
 class Tetris {
-    field int score;
     field Board board;
-    field Array blocks;
+    field Array blocks;     // these are blocks which is fallen in this game
 
     /** Constructs a new Tetris Game. */
     constructor Tetris new() {

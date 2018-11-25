@@ -1,30 +1,30 @@
-import { KeyWord, TokenType } from './Enum';
+import { TokenType } from './Enum';
 import Token from './Token';
 const fs = require('fs');
 
-const keyWordMap: Record<string, KeyWord> = {
-    class: KeyWord.CLASS,
-    constructor: KeyWord.CONSTRUCTOR,
-    function: KeyWord.FUNCTION,
-    method: KeyWord.METHOD,
-    field: KeyWord.FIELD,
-    static: KeyWord.STATIC,
-    var: KeyWord.VAR,
-    int: KeyWord.INT,
-    char: KeyWord.CHAR,
-    boolean: KeyWord.BOOLEAN,
-    void: KeyWord.VOID,
-    true: KeyWord.TRUE,
-    false: KeyWord.FALSE,
-    null: KeyWord.NULL,
-    this: KeyWord.THIS,
-    let: KeyWord.LET,
-    do: KeyWord.DO,
-    if: KeyWord.IF,
-    else: KeyWord.ELSE,
-    while: KeyWord.WHILE,
-    return: KeyWord.RETURN,
-};
+const keyWords: string[] = [
+    'class',
+    'constructor',
+    'function',
+    'method',
+    'field',
+    'static',
+    'var',
+    'int',
+    'char',
+    'boolean',
+    'void',
+    'true',
+    'false',
+    'null',
+    'this',
+    'let',
+    'do',
+    'if',
+    'else',
+    'while',
+    'return',
+];
 const symbols = [
     '{',
     '}',
@@ -122,7 +122,7 @@ export default class JackTokenizer {
     }
 
     private static isKeyword(str: string): boolean {
-        if (str in keyWordMap) {
+        if (keyWords.includes(str)) {
             return true;
         }
         return false;
@@ -156,12 +156,12 @@ export default class JackTokenizer {
         return this.tokens[0].type;
     }
 
-    public keyWord(): KeyWord {
+    public keyWord(): string {
         const token = this.tokens[0];
         if (token.type !== TokenType.KEYWORD) {
             throw new Error(`This token is not KEYWORD: ${token.value}`);
         }
-        return keyWordMap[token.value];
+        return token.value;
     }
 
     public symbol() {

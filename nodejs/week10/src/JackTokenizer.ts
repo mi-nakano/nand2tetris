@@ -52,7 +52,19 @@ export default class JackTokenizer {
 
     constructor(fileName: string) {
         let fileData: string = fs.readFileSync(`${fileName}`).toString();
+        fileData = JackTokenizer.trim(fileData);
         this.tokens = JackTokenizer.readTokens(fileData);
+    }
+
+    private static trim(str: string): string {
+        // remove comment
+        str = str.replace(/\/\/.*?[\n|\r|\n\r]/g, '');
+        str = str.replace(/\/\*.*?\*\//g, '');
+
+        str = str.replace(/\s{2,}/g, ' ');
+        str = str.replace(/^\s/g, '');
+        str = str.replace(/\s$/g, '');
+        return str;
     }
 
     private static readTokens(text: string): Token[] {

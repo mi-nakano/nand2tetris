@@ -31,8 +31,8 @@ export default class CompilationEngine {
     }
 
     public compileClassVarDec() {
-        this.printOpenTag('classVarDec');
         while (['static', 'field'].includes(this.tokenizer.peek(0))) {
+            this.printOpenTag('classVarDec');
             this.useKeyWord(this.tokenizer.keyWord());      // static, field
             this.compileType();
             // var name
@@ -42,13 +42,13 @@ export default class CompilationEngine {
                 this.useIdentifier();
             }
             this.useSymbol(';');
+            this.printCloseTag('classVarDec');
         }
-        this.printCloseTag('classVarDec');
     }
 
     public compileSubroutine() {
-        this.printOpenTag('subroutineDec');
         while (['constructor', 'function', 'method'].includes(this.tokenizer.peek(0))) {
+            this.printOpenTag('subroutineDec');
             this.useKeyWord(this.tokenizer.keyWord());
             if (this.tokenizer.tokenType() === TokenType.KEYWORD) {
                 this.useKeyWord('void');
@@ -68,8 +68,8 @@ export default class CompilationEngine {
             this.compileStatements();
             this.useSymbol('}');
             this.printCloseTag('subroutineBody');
+            this.printCloseTag('subroutineDec');
         }
-        this.printCloseTag('subroutineDec');
     }
 
     private compileType() {

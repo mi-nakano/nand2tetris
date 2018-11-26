@@ -152,6 +152,10 @@ export default class JackTokenizer {
         this.tokens.shift();
     }
 
+    public peek(index: number): string {
+        return this.tokens[index].value;
+    }
+
     public tokenType(): TokenType {
         return this.tokens[0].type;
     }

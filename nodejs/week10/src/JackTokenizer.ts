@@ -59,7 +59,7 @@ export default class JackTokenizer {
     private static trim(str: string): string {
         // remove comment
         str = str.replace(/\/\/.*?[\n|\r|\n\r]/g, '');
-        str = str.replace(/\/\*.*?\*\//g, '');
+        str = str.replace(/\/\*[\s\S]*?\*\//g, '');
 
         str = str.replace(/\s{2,}/g, ' ');
         str = str.replace(/^\s/g, '');

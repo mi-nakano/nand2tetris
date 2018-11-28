@@ -15,8 +15,8 @@ enum VarKind {
 }
 
 type Segment =
-    'const' |
-    'arg' |
+    'constant' |
+    'argument' |
     'local' |
     'static' |
     'this' |

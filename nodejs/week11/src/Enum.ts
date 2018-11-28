@@ -14,4 +14,25 @@ enum VarKind {
     NONE,
 }
 
-export { TokenType, VarKind };
+type Segment =
+    'const' |
+    'arg' |
+    'local' |
+    'static' |
+    'this' |
+    'that' |
+    'pointer' |
+    'temp';
+
+type Command =
+    'add' |
+    'sub' |
+    'neg' |
+    'eq' |
+    'gt' |
+    'lt' |
+    'and' |
+    'or' |
+    'not';
+
+export { TokenType, VarKind, Segment, Command };

@@ -6,4 +6,12 @@ enum TokenType {
     STRING_CONST,
 }
 
-export { TokenType };
+enum VarKind {
+    STATIC,
+    FIELD,
+    ARG,
+    VAR,
+    NONE,
+}
+
+export { TokenType, VarKind };

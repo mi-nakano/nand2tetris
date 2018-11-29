@@ -9,11 +9,11 @@ if (process.argv.length !== 3) {
 
 const path = process.argv[2];
 if (path.endsWith('.jack')) { // only 1 jack file
-    compileFile(path, path.replace('.jack', '.xml'));
+    compileFile(path, path.replace('.jack', '.vm'));
 } else {    // directory
     for (const fileName of fs.readdirSync(path)) {
         if (fileName.endsWith('.jack')) {
-            compileFile(`${path}/${fileName}`, `${path}/${fileName.replace('jack', 'xml')}`);
+            compileFile(`${path}/${fileName}`, `${path}/${fileName.replace('jack', 'vm')}`);
         }
     }
 }

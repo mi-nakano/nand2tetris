@@ -1,21 +1,24 @@
 import JackTokenizer from "./JackTokenizer";
-import { TokenType } from "./Enum";
-
-const fs = require('fs');
+import { TokenType, Segment, VarKind, Command } from "./Enum";
+import SymbolTable from "./SymbolTable";
+import VMWriter from "./VMWriter";
 
 export default class CompilationEngine {
     private tokenizer: JackTokenizer;
-    private fileName: string;
+    private symbolTable: SymbolTable;
+    private vmWriter: VMWriter;
+    private className: string;
+    private labelIndex: number = 0;
 
     constructor(tokenizer: JackTokenizer, fileName: string) {
         this.tokenizer = tokenizer;
-        this.fileName = fileName;
+        this.symbolTable = new SymbolTable();
+        this.vmWriter = new VMWriter(fileName);
     }
 
     public compileClass() {
-        this.printOpenTag('class');
         this.useKeyWord('class');
-        this.useIdentifier();
+        this.className = this.useIdentifier();
         this.useSymbol('{');
 
         if (['static', 'field'].includes(this.tokenizer.peek(0))) {
@@ -27,93 +30,96 @@ export default class CompilationEngine {
         }
 
         this.useSymbol('}');
-        this.printCloseTag('class');
     }
 
     public compileClassVarDec() {
         while (['static', 'field'].includes(this.tokenizer.peek(0))) {
-            this.printOpenTag('classVarDec');
-            this.useKeyWord(this.tokenizer.keyWord());      // static, field
-            this.compileType();
+            const kind = this.str2kind(this.useKeyWord());      // static, field
+            const type = this.compileType();
             // var name
-            this.useIdentifier();
+            let varName = this.useIdentifier();
+            this.symbolTable.define(varName, type, kind);
             while (this.tokenizer.peek(0) === ',') {
                 this.useSymbol(',');
-                this.useIdentifier();
+                varName = this.useIdentifier();
+                this.symbolTable.define(varName, type, kind);
             }
             this.useSymbol(';');
-            this.printCloseTag('classVarDec');
         }
     }
 
     public compileSubroutine() {
         while (['constructor', 'function', 'method'].includes(this.tokenizer.peek(0))) {
-            this.printOpenTag('subroutineDec');
             this.useKeyWord(this.tokenizer.keyWord());
             if (this.tokenizer.tokenType() === TokenType.KEYWORD) {
-                this.useKeyWord('void');
+                this.useKeyWord();
             } else {
                 this.useIdentifier();
             }
-            this.useIdentifier();   // subrounie name
+            const subroutineName = this.useIdentifier();
+            this.symbolTable.startSubroutine();
             this.useSymbol('(');
             this.compileParameterList();
             this.useSymbol(')');
 
-            this.printOpenTag('subroutineBody');
+            let numVar = 0;
             this.useSymbol('{');
             while (this.tokenizer.peek(0) === 'var') {
-                this.compileVarDec();
+                numVar += this.compileVarDec();
             }
+            this.vmWriter.writeFunction(`${this.className}.${subroutineName}`, numVar);
             this.compileStatements();
             this.useSymbol('}');
-            this.printCloseTag('subroutineBody');
-            this.printCloseTag('subroutineDec');
         }
     }
 
-    private compileType() {
+    private compileType(): string {
         if (this.tokenizer.tokenType() === TokenType.KEYWORD) {     // int, char, boolean
-            this.useKeyWord(this.tokenizer.keyWord());
+            return this.useKeyWord(this.tokenizer.keyWord());
         } else if (this.tokenizer.tokenType() === TokenType.IDENTIFIER) {   // className
-            this.useIdentifier();
+            return this.useIdentifier();
         }
+        throw new Error(`Unexpected tokenType: ${this.tokenizer.tokenType()}`);
     }
 
-    public compileParameterList() {
-        this.printOpenTag('parameterList');
+    public compileParameterList(): number {
+        let numParams = 0;
         if (this.tokenizer.peek(0) === ')') {
-            this.printCloseTag('parameterList');
-            return;
+            return numParams;
         }
 
-        this.compileType();
-        this.useIdentifier();
+        let type = this.compileType();
+        let paramName = this.useIdentifier();
+        this.symbolTable.define(paramName, type, VarKind.ARG);
+        numParams++;
         while (this.tokenizer.peek(0) !== ')') {
             this.useSymbol(',');
-            this.compileType();
-            this.useIdentifier();
+            type = this.compileType();
+            paramName = this.useIdentifier();
+            this.symbolTable.define(paramName, type, VarKind.ARG);
+            numParams++;
         }
-        this.printCloseTag('parameterList');
+        return numParams;
     }
 
-    public compileVarDec() {
-        this.printOpenTag('varDec');
+    public compileVarDec(): number {
+        let numVar = 1;
         this.useKeyWord('var');
-        this.compileType();
-        this.useIdentifier();
+        const type = this.compileType();
+        let varName = this.useIdentifier();
+        this.symbolTable.define(varName, type, VarKind.VAR);
         while (this.tokenizer.peek(0) === ',') {
+            numVar++;
             this.useSymbol(',');
-            this.useIdentifier();
+            varName = this.useIdentifier();
+            this.symbolTable.define(varName, type, VarKind.VAR);
         }
         this.useSymbol(';');
-        this.printCloseTag('varDec');
+        return numVar;
     }
 
     public compileStatements() {
-        this.printOpenTag('statements');
         this.compileStatement();
-        this.printCloseTag('statements');
     }
 
     private compileStatement() {
@@ -142,114 +148,196 @@ export default class CompilationEngine {
     }
 
     public compileDo() {
-        this.printOpenTag('doStatement');
         this.useKeyWord('do');
         this.compileSubroutineCall();
         this.useSymbol(';');
-        this.printCloseTag('doStatement');
+        this.vmWriter.writePop('temp', 0);
     }
 
     private compileSubroutineCall() {
+        let prefix = '';
+        let isInstance = false;
         if (this.tokenizer.peek(1) === '.') {   // xxx.fn();
-            this.useIdentifier();
+            let predot = this.useIdentifier();
+            try {       // if instance
+                predot = this.symbolTable.typeOf(predot);
+                isInstance = true;
+            } catch (e) {
+                // none
+            }
             this.useSymbol('.');
+            prefix = `${predot}.`;
         }
-        this.useIdentifier();       // subroutineName
+        const subroutineName = this.useIdentifier();
         this.useSymbol('(');
-        this.compileExpressionList();
+        let numArgs = this.compileExpressionList();
+        if (isInstance) {
+            numArgs++;
+        }
         this.useSymbol(')');
+        this.vmWriter.writeCall(`${prefix}${subroutineName}`, numArgs);
     }
 
     public compileLet() {
-        this.printOpenTag('letStatement');
         this.useKeyWord('let');
-        this.useIdentifier();
+        const varName = this.useIdentifier();
+        const kind = this.symbolTable.kindOf(varName);
+        const segment = this.kind2Segment(kind);
+        const index = this.symbolTable.indexOf(varName);
 
-        // if array
-        if (this.tokenizer.peek(0) === '[') {
+        if (this.tokenizer.peek(0) === '[') { // if array
+            this.vmWriter.writePush(segment, index);
             this.useSymbol('[');
             this.compileExpression();
             this.useSymbol(']');
-        }
+            this.vmWriter.writeArithmetic('add');       // calculate addr
 
-        this.useSymbol('=');
-        this.compileExpression();
-        this.useSymbol(';');
-        this.printCloseTag('letStatement');
+            this.useSymbol('=');
+            this.compileExpression();
+            this.useSymbol(';');
+            this.vmWriter.writePop('temp', 0);  // temp 0 <- expression
+
+            this.vmWriter.writePop('pointer', 1);   // that <- addr
+            this.vmWriter.writePush('temp', 0);
+            this.vmWriter.writePop('that', 0);      // that <- temp
+        } else {
+            this.useSymbol('=');
+            this.compileExpression();
+            this.useSymbol(';');
+            this.vmWriter.writePop(segment, index);
+        }
     }
 
     public compileWhile() {
-        this.printOpenTag('whileStatement');
+        const index = this.labelIndex++;
         this.useKeyWord('while');
         this.useSymbol('(');
+
+        this.vmWriter.writeLabel(`WHILE_EXP${index}`);
         this.compileExpression();
         this.useSymbol(')');
+        this.vmWriter.writeArithmetic('not');
+        this.vmWriter.writeIf(`WHILE_END${index}`);
+
         this.useSymbol('{');
         this.compileStatements();
         this.useSymbol('}');
-        this.printCloseTag('whileStatement');
+        this.vmWriter.writeGoTo(`WHILE_EXP${index}`);
+
+        this.vmWriter.writeLabel(`WHILE_END${index}`);
     }
 
     public compileReturn() {
-        this.printOpenTag('returnStatement');
         this.useKeyWord('return');
         if (this.tokenizer.peek(0) !== ';') {
             this.compileExpression();
+        } else {        // return void
+            this.vmWriter.writePush('constant', 0);
         }
+        this.vmWriter.writeReturn();
         this.useSymbol(';');
-        this.printCloseTag('returnStatement');
     }
 
     public compileIf() {
-        this.printOpenTag('ifStatement');
+        const index = this.labelIndex++;
         this.useKeyWord('if');
         this.useSymbol('(');
         this.compileExpression();
         this.useSymbol(')');
+        this.vmWriter.writeArithmetic('not');
+        this.vmWriter.writeIf(`IF_ELSE${index}`);
+
         this.useSymbol('{');
         this.compileStatements();
         this.useSymbol('}');
+        this.vmWriter.writeGoTo(`IF_END${index}`);
+
+        this.vmWriter.writeLabel(`IF_ELSE${index}`);
         if (this.tokenizer.peek(0) === 'else') {
             this.useKeyWord('else');
             this.useSymbol('{');
             this.compileStatements();
             this.useSymbol('}');
         }
-        this.printCloseTag('ifStatement');
+        this.vmWriter.writeLabel(`IF_END${index}`);
     }
 
     public compileExpression() {
-        this.printOpenTag('expression');
         this.compileTerm();
         while (this.isOperator(this.tokenizer.peek(0))) {
-            this.useSymbol(this.tokenizer.symbol());
+            const op: string = this.useSymbol(this.tokenizer.symbol());
             this.compileTerm();
+            switch (op) {
+                case '*':
+                    this.vmWriter.writeCall('Math.multiply', 2);
+                    break;
+                case '/':
+                    this.vmWriter.writeCall('Math.divide', 2);
+                    break;
+                default:
+                    this.vmWriter.writeArithmetic(this.str2Command(op));
+                    break;
+            }
         }
-        this.printCloseTag('expression');
     }
 
     public compileTerm() {
-        this.printOpenTag('term');
         switch (this.tokenizer.tokenType()) {
             case TokenType.INT_CONST:
-                this.useIntegerConstant();
+                this.vmWriter.writePush('constant', this.useIntegerConstant());
                 break;
             case TokenType.STRING_CONST:
-                this.useStringConstant();
+                let str = this.useStringConstant();
+                this.vmWriter.writePush('constant', str.length);
+                this.vmWriter.writeCall('String.new', 1);
+                while (str.length > 0) {
+                    this.vmWriter.writePush('constant', str.charCodeAt(0) as number);
+                    this.vmWriter.writeCall('String.appendChar', 2);
+                    str = str.substring(1);
+                }
                 break;
             case TokenType.KEYWORD:
-                this.useKeyWord(this.tokenizer.keyWord());
+                const keyword = this.useKeyWord();
+                switch (keyword) {
+                    case 'true':
+                        this.vmWriter.writePush('constant', 0);
+                        this.vmWriter.writeArithmetic('not');
+                        break;
+                    case 'false':
+                        this.vmWriter.writePush('constant', 0);
+                        break;
+                    case 'null':
+                        this.vmWriter.writePush('constant', 0);
+                        break;
+                    case 'this':
+                        break;
+                    default:
+                        throw new Error(`Unexpected keyword: ${keyword}`);
+                }
                 break;
             case TokenType.IDENTIFIER:
                 if (this.tokenizer.peek(1) === '[') { // varName[expression]
-                    this.useIdentifier();
+                    const varName = this.useIdentifier();
+                    const kind = this.symbolTable.kindOf(varName);
+                    const index = this.symbolTable.indexOf(varName);
+                    const segment: Segment = this.kind2Segment(kind);
+                    this.vmWriter.writePush(segment, index);
+
                     this.useSymbol('[');
                     this.compileExpression();
                     this.useSymbol(']');
+
+                    this.vmWriter.writeArithmetic('add');       // calculate addr
+                    this.vmWriter.writePop('pointer', 1);
+                    this.vmWriter.writePush('that', 0);
                 } else if (this.tokenizer.peek(1) === '(' || this.tokenizer.peek(1) === '.') {    // subroutine call
                     this.compileSubroutineCall();
                 } else {        // varName
-                    this.useIdentifier();
+                    const varName = this.useIdentifier();
+                    const kind = this.symbolTable.kindOf(varName);
+                    const index = this.symbolTable.indexOf(varName);
+                    const segment: Segment = this.kind2Segment(kind);
+                    this.vmWriter.writePush(segment, index);
                 }
                 break;
             case TokenType.SYMBOL:
@@ -258,8 +346,12 @@ export default class CompilationEngine {
                 if (symbol === '(') {   // (expression)
                     this.compileExpression();
                     this.useSymbol(')');
-                } else if (symbol === '-' || symbol === '~') {                // unaryOp term
+                } else if (symbol === '-') { // unaryOp term
                     this.compileTerm();
+                    this.vmWriter.writeArithmetic('neg');
+                } else if (symbol === '~') { // unaryOp term
+                    this.compileTerm();
+                    this.vmWriter.writeArithmetic('not');
                 } else {
                     throw new Error(`Unexpected term at compileTerm: ${symbol}`);
                 }
@@ -267,66 +359,104 @@ export default class CompilationEngine {
             default:
                 throw new Error(`Unexpected tokenType at compileTerm: ${this.tokenizer.tokenType()}`);
         }
-        this.printCloseTag('term');
     }
 
-    public compileExpressionList() {
-        this.printOpenTag('expressionList');
+    public compileExpressionList(): number {
+        let numArgs = 0;
         while (this.tokenizer.peek(0) !== ')') {
+            numArgs++;
             this.compileExpression();
             if (this.tokenizer.peek(0) === ',') {
                 this.useSymbol(',');
             }
         }
-        this.printCloseTag('expressionList');
+        return numArgs;
     }
 
-    private useKeyWord(keyword: string): void {
-        this.printTag('keyword', keyword);
+    private str2kind(str: string): VarKind {
+        if (str === 'static') {
+            return VarKind.STATIC;
+        }
+        if (str === 'field') {
+            return VarKind.FIELD;
+        }
+        throw new Error(`Unexpected str: ${str}`);
+    }
+
+    private kind2Segment(kind: VarKind): Segment {
+        switch (kind) {
+            case VarKind.STATIC:
+                return 'static';
+            case VarKind.FIELD:
+                return 'this';
+            case VarKind.VAR:
+                return 'local';
+            case VarKind.ARG:
+                return 'argument';
+            default:
+                throw new Error(`Unexpected kind: ${kind}`);
+        }
+    }
+
+    private str2Command(str: string): Command {
+        switch (str) {
+            case '+':
+                return 'add';
+            case '-':
+                return 'sub';
+            case '~':
+                return 'neg';
+            case '=':
+                return 'eq';
+            case '>':
+                return 'gt';
+            case '<':
+                return 'lt';
+            case '&':
+                return 'and';
+            case '|':
+                return 'or';
+            case '!':
+                return 'not';
+            default:
+                throw new Error(`Unexpected str: ${str}`);
+        }
+    }
+
+    private useKeyWord(keyword: string = ''): string {
+        if (keyword && keyword !== this.tokenizer.keyWord()) {
+            throw new Error(`Unexpected keyword: expected = ${keyword}, actual = ${this.tokenizer.keyWord()}`)
+        }
+        keyword = this.tokenizer.keyWord();
         this.tokenizer.advance();
+        return keyword;
     }
 
-    private useSymbol(symbol: string): void {
-        if (symbol !== this.tokenizer.symbol()) {
+    private useSymbol(symbol: string = ''): string {
+        if (symbol && symbol !== this.tokenizer.symbol()) {
             throw new Error(`Unexpected symbol: expected = ${symbol}, actual = ${this.tokenizer.symbol()}`)
         }
-        this.printTag('symbol', symbol);
+        symbol = this.tokenizer.symbol();
         this.tokenizer.advance();
+        return symbol;
     }
 
     private useIdentifier(): string {
         const identifier = this.tokenizer.identifier();
         this.tokenizer.advance();
-        this.printTag('identifier', identifier);
         return identifier;
     }
 
-    private useIntegerConstant(): void {
+    private useIntegerConstant(): number {
         const intVal = this.tokenizer.intVal();
         this.tokenizer.advance();
-        this.printTag('integerConstant', intVal.toString());
+        return intVal;
     }
 
-    private useStringConstant(): void {
+    private useStringConstant(): string {
         const stringVal = this.tokenizer.stringVal();
         this.tokenizer.advance();
-        this.printTag('stringConstant', stringVal);
-    }
-
-    private printTag(tagName: string, val: string): void {
-        let processed = val;
-        processed = processed.replace('&', '&amp;');
-        processed = processed.replace('<', '&lt;');
-        processed = processed.replace('>', '&gt;');
-        fs.appendFileSync(this.fileName, `<${tagName}> ${processed} </${tagName}>\n`);
-    }
-
-    private printOpenTag(tagName: string): void {
-        fs.appendFileSync(this.fileName, `<${tagName}>\n`);
-    }
-
-    private printCloseTag(tagName: string): void {
-        this.printOpenTag(`/${tagName}`);
+        return stringVal;
     }
 
     private isOperator(str: string): boolean {

@@ -11,20 +11,30 @@
  * string-oriented operations.
  */
 class String {
+    field int capacity;
     field Array text;
     field int currentLength;
 
     /** constructs a new empty string with a maximum length of maxLength
      *  and initial length of 0. */
     constructor String new(int maxLength) {
-        let text = Array.new(maxLength);
+        let capacity = maxLength;
+        if (maxLength = 0) {
+            // nothing
+        } else{
+            let text = Array.new(maxLength);
+        }
         let currentLength = 0;
         return this;
     }
 
     /** Disposes this string. */
     method void dispose() {
-        do Memory.dealloc(text);
+        if (capacity = 0) {
+            // nothing
+        } else {
+            do Memory.deAlloc(text);
+        }
         return;
     }
 
@@ -48,7 +58,7 @@ class String {
     method String appendChar(char c) {
         let text[currentLength] = c;
         let currentLength = currentLength + 1;
-        return text;
+        return this;
     }
 
     /** Erases the last character from this string. */
@@ -83,12 +93,16 @@ class String {
             let val = val / 10;
             let index = index + 1;
         }
+        if (val < 0) {
+            let reverse[index] = 45;    // -
+        }
         let index = index - 1;
         while (index > 0) {
             let text[index2] =  reverse[index];
             let index = index - 1;
             let index2 = index2 + 1;
         }
+        let currentLength = index2;
         return;
     }
 

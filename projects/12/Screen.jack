@@ -59,7 +59,132 @@ class Screen {
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
+        var int dx, dy;
+        let dx = x2 - x1;
+        let dy = y2 -y1;
+        if (dx = 0) {
+            do Screen.drawVerticalLine(x1, y1, y2);
+            return;
+        }
+        if (dy = 0) {
+            do Screen.drawHorizontalLine(x1, x2, y1);
+            return;
+        }
+        if (dx > 0) {
+            if (dy > 0) {
+                do Screen.drawLine1(x1, y1, dx, dy);
+            } else {
+                do Screen.drawLine2(x1, y1, dx, dy);
+            }
+        } else {
+            if (dy > 0) {
+                do Screen.drawLine3(x1, y1, dx, dy);
+            } else {
+                do Screen.drawLine4(x1, y1, dx, dy);
+            }
+        }
         return;
+    }
+
+    // dx > 0, dy > 0
+    function void drawLine1(int x, int y, int dx, int dy) {
+        var int a, b, abyMinuxbdy;
+        let a = 0;
+        let b = 0;
+        let abyMinuxbdy = 0;
+        while (((a < dx) | (a = dx)) & ((b < dy) | (b = dy))) {
+            do Screen.drawPixel(x + a, y + b);
+            if (abyMinuxbdy < 0) {
+                let a = a + 1;
+                let abyMinuxbdy = abyMinuxbdy + dy;
+            } else {
+                let b = b + 1;
+                let abyMinuxbdy = abyMinuxbdy - dx;
+            }
+        }
+        return;
+    }
+
+    // dx > 0, dy < 0
+    function void drawLine2(int x, int y, int dx, int dy) {
+        var int a, b, abyMinuxbdy;
+        let a = 0;
+        let b = 0;
+        let abyMinuxbdy = 0;
+        while (((a < dx) | (a = dx)) & ((b > dy) | (b = dy))) {
+            do Screen.drawPixel(x + a, y + b);
+            if (abyMinuxbdy < 0) {
+                let a = a + 1;
+                let abyMinuxbdy = abyMinuxbdy + Math.abs(dy);
+            } else {
+                let b = b - 1;
+                let abyMinuxbdy = abyMinuxbdy - dx;
+            }
+        }
+        return;
+    }
+
+    // dx < 0, dy > 0
+    function void drawLine3(int x, int y, int dx, int dy) {
+        var int a, b, abyMinuxbdy;
+        let a = 0;
+        let b = 0;
+        let abyMinuxbdy = 0;
+        while (((a > dx) | (a = dx)) & ((b < dy) | (b = dy))) {
+            do Screen.drawPixel(x + a, y + b);
+            if (abyMinuxbdy < 0) {
+                let a = a - 1;
+                let abyMinuxbdy = abyMinuxbdy + dy;
+            } else {
+                let b = b + 1;
+                let abyMinuxbdy = abyMinuxbdy - Math.abs(dx);
+            }
+        }
+        return;
+    }
+
+    // dx < 0, dy < 0
+    function void drawLine4(int x, int y, int dx, int dy) {
+        var int a, b, abyMinuxbdy;
+        let a = 0;
+        let b = 0;
+        let abyMinuxbdy = 0;
+        while (((a > dx) | (a = dx)) & ((b > dy) | (b = dy))) {
+            do Screen.drawPixel(x + a, y + b);
+            if (abyMinuxbdy < 0) {
+                let a = a - 1;
+                let abyMinuxbdy = abyMinuxbdy + Math.abs(dy);
+            } else {
+                let b = b - 1;
+                let abyMinuxbdy = abyMinuxbdy - Math.abs(dx);
+            }
+        }
+        return;
+    }
+
+    // dx = 0
+    function void drawVerticalLine(int x, int y1, int y2) {
+        var int index, max;
+        let index = Math.min(y1, y2);
+        let max = Math.max(y1, y2);
+        while((index < max) | (index = max)) {
+            do Screen.drawPixel(x, index);
+            let index = index + 1;
+        }
+        return;
+    }
+
+    // dy = 0
+    function void drawHorizontalLine(int x1, int x2, int y) {
+        var int index, max;
+        let index = Math.min(x1, x2);
+        let max = Math.max(x1, x2);
+        while((index < max) | (index = max)) {
+            do Screen.drawPixel(index, y);
+            let index = index + 1;
+        }
+        return;
+
     }
 
     /** Draws a filled rectangle whose top left corner is (x1, y1)
